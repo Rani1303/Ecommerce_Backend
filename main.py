@@ -4,6 +4,7 @@ from typing import List
 from typing import Optional
 from database import engine, get_db, Product, Base
 from pydantic import BaseModel
+import uuid
 
 class ProductBase(BaseModel):
     name: str
@@ -15,12 +16,13 @@ class ProductCreate(ProductBase):
     pass
 
 class ProductResponse(ProductBase):
-    id: int
+    id: uuid.UUID
 
     class Config:
         from_attributes=True
 
 
+# Base.metadata.drop_all(bind=engine)
 Base.metadata.create_all(bind=engine)
 app=FastAPI(title="Ecommerce API")
 
@@ -30,7 +32,7 @@ def get_products(skip: int=0, limit: int=100, db: Session=Depends(get_db)):
     return products
 
 @app.get("/products/{product_id}", response_model=ProductResponse)
-def get_product(product_id : int, db:Session=Depends(get_db)):
+def get_product(product_id : uuid.UUID, db:Session=Depends(get_db)):
     product=db.query(Product).filter(Product.id==product_id).first()
     if product is None:
         raise HTTPException(status_code=404, details="Product not found")
