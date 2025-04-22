@@ -49,8 +49,17 @@ def add_product(product: ProductCreate, db: Session=Depends(get_db)):
     db.add(db_product)
     db.commit()
     db.refresh(db_product)
-    return db_product
-    
+    return {"message":"Product successfully added!"}
+
+@app.delete("/delete_product/{product_id}")
+def delete_product(product_id: uuid.UUID, db: Session = Depends(get_db)):
+    product = db.query(Product).filter(Product.id == product_id).first()
+    if product is None:
+        raise HTTPException(status_code=404, detail="Product not found")
+    db.delete(product)
+    db.commit()
+    db.refresh(product)
+    return {"message": "Product deleted successfully!"}
 
 if __name__=="__main__":
     import uvicorn
